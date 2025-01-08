@@ -71,19 +71,33 @@ pub fn masked_softmax(y: &mut Tensor<f32>) {
 }
 
 pub fn rms_norm(y: &mut Tensor<f32>, x: &Tensor<f32>, w: &Tensor<f32>, epsilon: f32) {
+    
+    
     todo!("实现 rms_norm，计算前做一些必要的检查会帮助你后续调试")
 }
 
 // y = silu(x) * y
 // hint: this is an element-wise operation
 pub fn swiglu(y: &mut Tensor<f32>, x: &Tensor<f32>) {
-    // let len = y.size();
-    // assert!(len == x.size());
+    /*
+        y = silu(x)*y
+        silu(x) = sigmoid(x) * x,   sigmoid(x) = 1 / (1 + e^(-x))
+        element-wise，默认输入输出长度相同，不考虑广播
+     */
 
-    // let _y = unsafe { y.data_mut() };
-    // let _x = x.data();
+    let len = y.size();
+    assert!(len == x.size());
 
-    todo!("实现 silu，这里给了一些前期准备工作的提示，你可以参考")
+    let _y = unsafe { y.data_mut() };
+    let _x = x.data();
+    for i in 0..len {
+        let x_elem = _x[i];
+        let sigmoid = 1.0 / (1.0 + (-x_elem).exp());
+        let silu = sigmoid * x_elem;
+        _y[i] *= silu;
+    }
+
+    //todo!("实现 silu，这里给了一些前期准备工作的提示，你可以参考")
 }
 
 // C = beta * C + alpha * A @ B^T
