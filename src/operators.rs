@@ -71,9 +71,38 @@ pub fn masked_softmax(y: &mut Tensor<f32>) {
 }
 
 pub fn rms_norm(y: &mut Tensor<f32>, x: &Tensor<f32>, w: &Tensor<f32>, epsilon: f32) {
+    /*
+        y_i = w*x_i / sq(1/n * sigma_j((x_ij)^2 ) + epsilon)
+        参数 w 是个一维向量，与各个向量长度相同，且进行element-wise乘法
+    */
+    // {:?} 是用来打印实现了 Debug trait 的类型的
+    println!("x shape: {:?}", x.shape()); // [2,2]
+    println!("y shape: {:?}", y.shape()); // [2,2]
+    println!("w shape: {:?}", w.shape()); // [2]
+
+    assert_eq!(w.size(), *x.shape().last().unwrap()); 
+    // a.shape().last() 返回一个 Option<&usize>, unwrap()返回 &usize
+    // .size()返回张量中所有元素的总数，这里解引用是因为.size()返回usize
+    assert_eq!(y.shape(), x.shape());
+
+    let dim = *x.shape().last().unwrap();
+    let batch = x.size() / dim;
+    for i in 0..batch {
+        let start = i * dim;
+        let _x = &x.data()[start..start+dim];
+        let mut sum: f32 = _x.iter().map(|&x| x * x).sum();
+        sum = sum / (dim as f32) + epsilon;
+        sum = sum.sqrt();
+        unsafe {
+            let mut _y = &mut y.data_mut()[start..start+dim];
+
+            for idx in 0..dim {
+                _y[idx] = w.data()[idx] * _x[idx] / sum;
+            }
+        }
+    }
     
-    
-    todo!("实现 rms_norm，计算前做一些必要的检查会帮助你后续调试")
+    //todo!("实现 rms_norm，计算前做一些必要的检查会帮助你后续调试")
 }
 
 // y = silu(x) * y
@@ -103,7 +132,32 @@ pub fn swiglu(y: &mut Tensor<f32>, x: &Tensor<f32>) {
 // C = beta * C + alpha * A @ B^T
 // hint: You don't need to do an explicit transpose of B
 pub fn matmul_transb(c: &mut Tensor<f32>, beta: f32, a: &Tensor<f32>, b: &Tensor<f32>, alpha: f32) {
-    todo!("实现 matmul_transb，计算前做一些必要的检查会帮助你后续调试");
+    //todo!("实现 matmul_transb，计算前做一些必要的检查会帮助你后续调试");
+    let dim_a = *a.shape().last().unwrap(); //2
+    let dim_b = *b.shape().last().unwrap(); //2
+    let dim_c = *c.shape().last().unwrap(); //4
+
+    assert_eq!(dim_a, dim_b);
+    assert_eq!(*c.shape(), vec!{a.shape()[0], b.shape()[0]});
+
+    for i in 0..a.size()/dim_a {
+        let _a = &a.data()[i * dim_a..][..dim_a];
+        for j in 0..b.size()/dim_b {
+            let _b = &b.data()[j * dim_b..][..dim_b];
+            let mut sum = 0.0;
+            for k in 0.._a.len() {
+                sum += _a[k] * _b[k];
+            }
+            sum *= alpha;
+            unsafe {
+                let mut _c = c.data_mut();
+                _c[i * dim_c + j] = _c[i * dim_c + j] * beta + sum;
+            }
+        }
+    }
+
+
+
 }
 
 // Dot product of two tensors (treated as vectors)
