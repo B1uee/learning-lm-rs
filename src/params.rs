@@ -43,34 +43,34 @@ impl LLamaParams<f32> {
 
 
         };
-        
+        let layers = config.num_hidden_layers;
         LLamaParams {
             embedding_table: get_tensor("lm_head.weight"),
-            rms_att_w: (0..config.num_hidden_layers)
+            rms_att_w: (0..layers)
                 .map(|i| get_tensor(&format!("model.layers.{}.input_layernorm.weight", i)))
                 .collect(),
-            wq: (0..config.num_hidden_layers)
+            wq: (0..layers)
                 .map(|i| get_tensor(&format!("model.layers.{}.self_attn.q_proj.weight", i)))
                 .collect(),
-            wk: (0..config.num_hidden_layers)
+            wk: (0..layers)
                 .map(|i| get_tensor(&format!("model.layers.{}.self_attn.k_proj.weight", i)))
                 .collect(),
-            wv: (0..config.num_hidden_layers)
+            wv: (0..layers)
                 .map(|i| get_tensor(&format!("model.layers.{}.self_attn.v_proj.weight", i)))
                 .collect(),
-            wo: (0..config.num_hidden_layers)
+            wo: (0..layers)
                 .map(|i| get_tensor(&format!("model.layers.{}.self_attn.o_proj.weight", i)))
                 .collect(),
-            rms_ffn_w: (0..config.num_hidden_layers)
+            rms_ffn_w: (0..layers)
                 .map(|i| get_tensor(&format!("model.layers.{}.post_attention_layernorm.weight", i)))
                 .collect(),
-            w_up: (0..config.num_hidden_layers)
+            w_up: (0..layers)
                 .map(|i| get_tensor(&format!("model.layers.{}.mlp.up_proj.weight", i)))
                 .collect(),
-            w_gate: (0..config.num_hidden_layers)
+            w_gate: (0..layers)
                 .map(|i| get_tensor(&format!("model.layers.{}.mlp.gate_proj.weight", i)))
                 .collect(),
-            w_down: (0..config.num_hidden_layers)
+            w_down: (0..layers)
                 .map(|i| get_tensor(&format!("model.layers.{}.mlp.down_proj.weight", i)))
                 .collect(),
             rms_out_w: get_tensor("model.norm.weight"),
